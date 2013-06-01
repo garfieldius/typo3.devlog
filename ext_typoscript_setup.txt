@@ -1,0 +1,11 @@
+
+module.tx_devlog {
+	view {
+		templateRootPath = EXT:devlog/Resources/Private/Templates/
+		partialRootPath = EXT:devlog/Resources/Private/Partials/
+		layoutRootPath = EXT:devlog/Resources/Private/Layouts/
+	}
+	settings {
+
+	}
+}

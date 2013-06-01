@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="mlang_tabs_tab">Devlog</label>
+			<label index="mlang_labels_tablabel">Developer Log</label>
+			<label index="mlang_labels_tabdescr">Display dev log entries and browse through them</label>
+		</languageKey>
+	</data>
+</T3locallang>

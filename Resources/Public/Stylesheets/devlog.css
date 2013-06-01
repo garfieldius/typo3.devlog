@@ -1,0 +1,19 @@
+
+.nowrap,
+.nowrap a,
+.nowrap span {
+	white-space: nowrap;
+}
+
+
+
+.typo3-extension-list .debug-data-container tr td {
+	vertical-align: top;
+}
+
+.typo3-extension-list th {
+	cursor: default;
+}
+.typo3-extension-list a {
+	cursor: pointer;
+}

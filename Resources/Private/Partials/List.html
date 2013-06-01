@@ -1,0 +1,68 @@
+{namespace d=TYPO3Community\Devlog\ViewHelpers}
+
+<div class="headerRow ui-helper-clearfix">
+	<div class="typo3-extensionmanager-headerRowLeft">
+	</div>
+	<div class="typo3-extensionmanager-headerRowRight">
+	</div>
+</div>
+
+
+<f:if condition="{entries -> f:count()} > 0">
+	<f:then>
+
+		<div style="display:none">
+			<div class="icon-expand"><f:be.buttons.icon icon="actions-view-table-expand" uri="#" /></div>
+			<div class="icon-collapse"><f:be.buttons.icon icon="actions-view-table-collapse" uri="#" /></div>
+		</div>
+
+		<f:if condition="{previous}">
+			<f:be.buttons.icon icon="actions-view-paging-previous" title="Previous" uri="{f:uri.action(action:list,arguments:{run: previous})}" />
+		</f:if>
+		<f:if condition="{next}">
+			<f:be.buttons.icon icon="actions-view-paging-next" title="Next" uri="{f:uri.action(action:list,arguments:{run: next})}" />
+		</f:if>
+
+<table id="typo3-extension-list" class="typo3-extension-list">
+	<thead>
+	<tr>
+		<th>User</th>
+		<th>Severity</th>
+		<th>Extension</th>
+		<th>Messge</th>
+		<th>File</th>
+		<th>Line</th>
+		<th>Debug Data</th>
+	</tr>
+	</thead>
+	<tbody>
+	<f:for each="{entries}" as="entry" key="extensionKey">
+		<tr>
+			<td class="nowrap">{entry.cruser -> d:user()}</td>
+			<td>{entry.severity -> d:severity()}</td>
+			<td>{entry.extkey}</td>
+			<td>{entry.msg}</td>
+			<td class="nowrap"><span title="{entry.file -> f:format.htmlentities()}">{entry.file -> d:cropLeft() -> f:format.htmlspecialchars()}</span></td>
+			<td>{entry.line}</td>
+			<td class="nowrap"><f:if condition="{entry.data}">
+				<f:then><span id="e{entry.uid}"><f:be.buttons.icon icon="actions-document-open" uri="javascript:TYPO3.Devlog.LoadDetails('{f:uri.action(action:'detail',arguments:{debugEntry:entry.uid})}', '#e{entry.uid}');" title="Load Debug Data" /></span><span class="spinner" style="display:none"></span> </f:then>
+				<f:else> </f:else>
+			</f:if></td>
+		</tr>
+	</f:for>
+	</tbody>
+</table>
+<script type="text/javascript">
+	TYPO3.Devlog.Init(<![CDATA[{]]>
+		settings: {settings -> d:json()},
+		config: {config -> d:json()},
+		next: "{next}",
+		previous: "{previous}",
+		count: {allcount}
+	});
+</script>
+	</f:then>
+	<f:else>
+		<p>No log entries found</p>
+	</f:else>
+</f:if>

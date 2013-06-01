@@ -1,0 +1,36 @@
+{namespace em=TYPO3\CMS\Extensionmanager\ViewHelpers}
+
+<em:be.container pageTitle="Developer Log" enableJumpToUrl="true" enableClickMenu="false" loadPrototype="false" loadScriptaculous="false" loadExtJs="false" loadExtJsTheme="true"
+				 addCssFiles="{
+		0:'{f:uri.resource(path:\'Css/main.css\', extensionName:\'Extensionmanager\')}',
+		1:'{f:uri.resource(path:\'Contrib/LoadMask/jquery.loadmask.css\', extensionName:\'Extensionmanager\')}',
+		2:'{f:uri.resource(path:\'Css/jquery.clearable.css\', extensionName:\'Extensionmanager\')}',
+		3:'{f:uri.resource(path:\'Stylesheets/devlog.css\')}'
+	}"
+				 addJsFiles="{
+		0:'{f:uri.resource(path:\'JavaScript/jquery-1.8.2.min.js\', extensionName:\'Extensionmanager\')}',
+		1:'{f:uri.resource(path:\'JavaScript/jquery.dataTables-1.9.4.min.js\', extensionName:\'Extensionmanager\')}',
+		2:'{f:uri.resource(path:\'JavaScript/jquery-ui-1.8.17.custom.min.js\', extensionName:\'Extensionmanager\')}',
+		3:'{f:uri.resource(path:\'JavaScript/jquery.tools.min.js\', extensionName:\'Extensionmanager\')}',
+		3a:'{f:uri.resource(path:\'JavaScript/jquery.clearable.js\', extensionName:\'Extensionmanager\')}',
+		4:'{f:uri.resource(path:\'Contrib/LoadMask/jquery.loadmask.js\', extensionName:\'Extensionmanager\')}',
+		5:'{f:uri.resource(path:\'Javascript/TYPO3.Devlog.js\')}'
+		}">
+
+	<div id="typo3-docheader">
+		<div class="typo3-docheader-functions">
+		</div>
+		<div class="typo3-docheader-buttons">
+			<div class="call-cleaner"><f:be.buttons.icon uri="javascript:TYPO3.Devlog.CallCleaner('{f:uri.action(action:'clean')}')" icon="actions-system-cache-clear-impact-low" title="Clean up database"/></div>
+			<div class="working-cleaner" style="display:none;"><span class="spinner"></span></div>
+		</div>
+	</div>
+	<div id="typo3-docbody">
+		<div id="typo3-inner-docbody" class="typo3-extension-manager">
+			<h1>Developer Log</h1>
+			<div id="contents">
+				<f:render section="Content" />
+			</div>
+		</div>
+	</div>
+</em:be.container>
