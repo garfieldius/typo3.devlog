@@ -137,4 +137,15 @@ class DevlogLogger implements WriterInterface {
 		}
 		$this->db->exec_INSERTquery('tx_devlog', $inserts);
 	}
+
+	/**
+	 * Used by the the old TYPO3 devlog API
+	 *
+	 * @see GeneralUtility::devlog
+	 * @param array $params
+	 * @return void
+	 */
+	public function coreCall(array $params) {
+		$this->storeLog($params['msg'], $params['extKey'], $params['severity'], $params['dataVar'], 4);
+	}
 }
