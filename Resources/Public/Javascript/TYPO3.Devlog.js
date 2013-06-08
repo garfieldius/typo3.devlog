@@ -51,57 +51,62 @@ TYPO3.Devlog = {};
 		return toggler;
 	}
 
-	function buildDebugDataTable(data, container) {
+	function buildDebugCollectionRows(collection, container) {
+		$.each(collection, function(name, value) {
+			buildDebugDataTable(name, value, container);
+		});
+	}
 
-		var entry = $('<table />').appendTo(container);
+	function buildDebugDataTable(name, value, container) {
 
-		$.each(data, function(name, value) {
+		var
+			row = $('<tr />').appendTo(container),
+			data = $('<td />'),
+			subElementsContainer;
 
-			var row = $('<tr />').appendTo(entry),
-				data = $('<td />'),
-				subElementsContainer;
+		row.append($('<td />').html(name));
+		row.append(data);
 
-			row.append($('<td />').html(name));
-			row.append(data);
+		if (value.type == "array" || (value.type == "object" && value.collection)) {
 
-			if (value.type == "array" || (value.type == "object" && value.collection)) {
+			data.html(
+				"<em>" +
+				(value.collection ? 'collection: ' + value["class"] : value.type) +
+				" (" + value.length + " elements)</em>"
+			);
 
-				data.html(
-					"<em>" +
-					(value.collection ? 'collection: ' + value["class"] : value.type) +
-					" (" + value.length + " elements)</em>"
-				);
+			if (value.length) {
 
-				if (value.length) {
-					subElementsContainer = $('<div class="data-table" style="display:none;"></div>');
-					createToggler(subElementsContainer).appendTo(data);
-					subElementsContainer.appendTo(data);
-					buildDebugDataTable(value.elements, subElementsContainer);
-				}
+				subElementsContainer = $('<div class="data-table" style="display:none;"><table /></div>');
+				createToggler(subElementsContainer).appendTo(data);
+				subElementsContainer = subElementsContainer.appendTo(data).find('table');
 
-			} else if (value.type == "object") {
-
-				data.html(
-					"<em> object " +
-					value["class"] +
-					(value.length ? " (" + value.length + " properties)" : '') +
-					'</em>'
-				);
-
-				if (value.length) {
-					subElementsContainer = $('<div class="data-table" style="display:none;"></div>');
-					createToggler(subElementsContainer).appendTo(data);
-					subElementsContainer.appendTo(data);
-					buildDebugDataTable(value.properties, subElementsContainer);
-				}
-
-			} else if (value.type == "string") {
-				data.html( "<em>" + value.type + " (" + value.value.length + " chars)</em> '" + value.value + "'");
-			} else {
-				data.html( "<em>" + value.type + "</em> " + value.value);
+				buildDebugCollectionRows(value.elements, subElementsContainer);
 			}
 
-		});
+		} else if (value.type == "object") {
+
+			data.html(
+				"<em> object " +
+				value["class"] +
+				(value.length ? " (" + value.length + " properties)" : '') +
+				'</em>'
+			);
+
+			if (value.length) {
+				subElementsContainer = $('<div class="data-table" style="display:none;"></div>');
+				createToggler(subElementsContainer).appendTo(data);
+				subElementsContainer.appendTo(data);
+				$.each(value.properties, function() {
+					buildDebugDataTable(this.name, this.value, subElementsContainer);
+				});
+			}
+
+		} else if (value.type == "string") {
+			data.html( "<em>" + value.type + " (" + value.value.length + " chars)</em> '" + (value.value.length > 200 ? '<pre>' : '') + value.value + (value.value.length > 200 ? '</pre>' : '') + "'");
+		} else {
+			data.html( "<em>" + value.type + "</em> " + value.value);
+		}
 	}
 
 	exports.Init = function(data) {
@@ -118,8 +123,11 @@ TYPO3.Devlog = {};
 			$(clickable).parents("tr").after( $('<tr />').append(container) );
 			container = $('<div class="debug-data-container" />').appendTo(container);
 
-
-			buildDebugDataTable(data, container);
+			if ($.isArray(data) || data.elements) {
+				buildDebugCollectionRows(data.elements || data, container);
+			} else {
+				buildDebugDataTable('<em>.</em>', data.value, container);
+			}
 			$(clickable).parent().empty().append(createToggler(container, "Debug Data", true));
 
 		}).error(function() {
