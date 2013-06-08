@@ -11,6 +11,7 @@
 namespace TYPO3Community\Devlog\ViewHelpers;
 
 use TYPO3\CMS\Backend\Utility\IconUtility;
+use TYPO3\CMS\Core\Log\LogLevel;
 use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
 
 /**
@@ -33,23 +34,26 @@ class SeverityViewHelper extends AbstractViewHelper {
 		}
 
 		switch ($severity) {
-			case 0:
+			case LogLevel::DEBUG:
 				$icon = 'status-dialog-information';
 				break;
 
-			case 1:
+			case LogLevel::INFO:
+			case LogLevel::NOTICE:
 				$icon = 'status-dialog-notification';
 				break;
 
-			case 2:
+			case LogLevel::WARNING:
 				$icon = 'status-dialog-warning';
 				break;
 
-			case 3:
+			case LogLevel::ERROR:
+			case LogLevel::CRITICAL:
 				$icon = 'status-dialog-error';
 				break;
 
-			case 4:
+			case LogLevel::ALERT:
+			case LogLevel::EMERGENCY:
 				$icon = 'status-status-permission-denied';
 				break;
 

@@ -18,10 +18,14 @@ TYPO3.Devlog = {};
 
 	var latestData;
 
+	function getIcon(name) {
+		return $('.icon-' + name).find("span").clone().css("display", "inline-block");
+	}
+
 	function createToggler(element, label, startNotActive) {
 		var toggler = $("<a />").attr("title", "Show / Hide subelements").html(" " + (label || "") + " "),
-			expand = $('.icon-expand').find("span").clone().appendTo(toggler).css("display", "inline-block"),
-			collapse = $('.icon-collapse').find("span").clone().appendTo(toggler).css("display", "inline-block"),
+			expand = getIcon('expand').appendTo(toggler),
+			collapse = getIcon('collapse').appendTo(toggler),
 			active = false;
 
 		toggler.click(function() {
@@ -111,7 +115,7 @@ TYPO3.Devlog = {};
 		$.getJSON(url, function(data) {
 
 			var container = $("<td colspan='10' />");
-			$(clickable).parents("tr").after($('<tr />').append(container));
+			$(clickable).parents("tr").after( $('<tr />').append(container) );
 			container = $('<div class="debug-data-container" />').appendTo(container);
 
 

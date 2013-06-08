@@ -9,6 +9,25 @@
  *                                                                     */
 
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['devLog'][$_EXTKEY] =
-	'&TYPO3Community\Devlog\Logger\\' .
-	\TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3Community\Devlog\Utility\Configuration')->getLogger() .
-	'Logger->coreCall';
+	'TYPO3Community\Devlog\Logger\DevlogLogger->coreCall';
+
+$processors = array(
+	'TYPO3Community\Devlog\Processors\UserDataProcessor' => array(),
+	'TYPO3Community\Devlog\Processors\BackTraceProcessor' => array()
+);
+
+if (!empty($GLOBALS['TYPO3_CONF_VARS']['LOG']['processorConfiguration'][\TYPO3\CMS\Core\Log\LogLevel::DEBUG])) {
+	$GLOBALS['TYPO3_CONF_VARS']['LOG']['processorConfiguration'][\TYPO3\CMS\Core\Log\LogLevel::DEBUG] = array_merge(
+		$GLOBALS['TYPO3_CONF_VARS']['LOG']['processorConfiguration'][\TYPO3\CMS\Core\Log\LogLevel::DEBUG],
+		$processors
+	);
+} else {
+	$GLOBALS['TYPO3_CONF_VARS']['LOG']['processorConfiguration'][\TYPO3\CMS\Core\Log\LogLevel::DEBUG] = $processors;
+}
+unset($processors);
+
+$GLOBALS['TYPO3_CONF_VARS']['LOG']['writerConfiguration'][
+	\TYPO3\CMS\Core\Log\LogLevel::DEBUG
+][
+	'TYPO3Community\Devlog\Logger\DevlogLogger'
+] = array();

@@ -38,22 +38,17 @@ class Configuration implements SingletonInterface {
 	/**
 	 * @var integer
 	 */
-	protected $dumpSize = 1000000;
+	protected $dumpSize = 4294967295;
 
 	/**
 	 * @var integer
 	 */
-	protected $minLogLevel = -1;
+	protected $minLogLevel = 7;
 
 	/**
 	 * @var string
 	 */
 	protected $excludeKeys = '';
-
-	/**
-	 * @var string
-	 */
-	protected $logger = 'Devlog';
 
 	public function __construct() {
 		if (!empty($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['devlog'])) {
@@ -72,13 +67,6 @@ class Configuration implements SingletonInterface {
 	 */
 	public function getCurrentRun() {
 		return $this->currentRun;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getLogger() {
-		return $this->logger;
 	}
 
 	/**

@@ -8,34 +8,42 @@
  * of the License, or (at your option) any later version.              *
  *                                                                     */
 
-namespace TYPO3Community\Devlog\Logger;
+namespace TYPO3Community\Devlog\Processors;
 
+use TYPO3\CMS\Core\Log\LogRecord;
+use TYPO3\CMS\Core\Log\Processor\AbstractProcessor;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Simple access for easier dev-logging
+ * Add information about the logged in user
  *
  * @package Devlog
  * @author Georg Großberger <georg@grossberger.at>
  * @copyright 2013 by Georg Großberger
  * @license GPL v3 http://www.gnu.org/licenses/gpl-3.0.txt
  */
-class DevlogFactory {
+class UserDataProcessor extends AbstractProcessor {
 
 	/**
-	 * @var LoggerInterface
-	 */
-	private static $instance;
-
-	/**
+	 * Processes a log record and adds additional data.
 	 *
-	 * @return LoggerInterface
+	 * @param LogRecord $logRecord The log record to process
+	 * @return LogRecord The processed log record with additional data
 	 */
-	public static function getLog() {
-		if (!self::$instance) {
-			$logger = array_shift(explode('->', $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_div.php']['devLog']['devlog']));
-			self::$instance = GeneralUtility::makeInstance($logger);
+	public function processLogRecord(LogRecord $logRecord) {
+		$data = array();
+
+		if (isset($GLOBALS['TSFE']) && is_object($GLOBALS['TSFE']->fe_user)) {
+			$data['__feuser'] = $GLOBALS['TSFE']->fe_user;
 		}
-		return self::$instance;
+
+		if (isset($GLOBALS['BE_USER']) && is_object($GLOBALS['BE_USER'])) {
+			$data['__beuser'] = $GLOBALS['BE_USER'];
+		}
+
+		if (!empty($data)) {
+			$logRecord->addData($data);
+		}
+		return $logRecord;
 	}
 }

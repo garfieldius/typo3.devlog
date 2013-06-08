@@ -2,14 +2,12 @@
 # cat=basic; type=integer; label=Maximum number of log runs: Number of TYPO3 runs to keep when cleaning up the database
 maxSavedRuns = 50
 
-# cat=basic; type=integer; label=Maximum size of extra data: The extra data field accepts an array containing any number of data. However when that array becomes too large, writing it to the database may actually crash you server. It is recommended to set a limit (in number of characters).
-dumpSize = 1000000
+# cat=basic; type=integer; label=Maximum size of extra data: The extra data field accepts an array containing any number of data. The default data size restriction is the maximum length a longblob field can store.
+dumpSize = 4294967295
 
-# cat=basic; type=options[-1=All,0=Info,1=Notice,2=Warning,3=Error]; label=Minimum level for logging: Minimum message level required for actually writing to the log table
-minLogLevel = -1
+# cat=basic; type=options[7=Debug,6=Info,5=Notice,4=Warning,3=Error,2=Critical,1=Alert,0=Emergency]; label=Minimum level for logging: Minimum message level required for actually writing to the log table
+minLogLevel = 7
 
 # cat=basic; type=string; label=Exclude keys: Comma-separated list of (extension) keys that should not be logged into the Developer Log
 excludeKeys =
 
-# cat=basic; type=options[Null=No Logging,Devlog=Common Devlog]; label=Logger: Logger to use. Just in case you don't want to deactivate the enable_DLOG setting.
-logger=Devlog

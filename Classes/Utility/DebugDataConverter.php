@@ -35,9 +35,9 @@ class DebugDataConverter extends DebuggerUtility implements SingletonInterface {
 	 * @param array $data
 	 * @return array
 	 */
-	public function convertData(array $data) {
+	public function convertData($data) {
 		self::clearState();
-		return $this->convertArray($data);
+		return $this->convertValue($data);
 	}
 
 	/**
@@ -77,7 +77,7 @@ class DebugDataConverter extends DebuggerUtility implements SingletonInterface {
 				break;
 
 			case 'resource':
-				$dump['value'] = (string) $value;
+				$dump['value'] = get_resource_type($value) . ' - ' . strval($value);
 				break;
 
 			case 'double':

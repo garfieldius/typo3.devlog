@@ -11,6 +11,8 @@
 namespace TYPO3Community\Devlog\Logger;
 
 use TYPO3\CMS\Core\Database\DatabaseConnection;
+use TYPO3\CMS\Core\Log\LogRecord;
+use TYPO3\CMS\Core\Log\Writer\WriterInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3Community\Devlog\Utility\Configuration;
 
@@ -22,7 +24,7 @@ use TYPO3Community\Devlog\Utility\Configuration;
  * @copyright 2013 by Georg Großberger
  * @license GPL v3 http://www.gnu.org/licenses/gpl-3.0.txt
  */
-class DevlogLogger implements LoggerInterface {
+class DevlogLogger implements WriterInterface {
 
 	/**
 	 *
@@ -52,6 +54,18 @@ class DevlogLogger implements LoggerInterface {
 	}
 
 	/**
+	 * Writes the log record
+	 *
+	 * @param LogRecord $record Log record
+	 * @return WriterInterface $this
+	 * @throws \Exception
+	 */
+	public function writeLog(LogRecord $record) {
+		$this->storeLog($record->getMessage(), $record->getComponent(), $record->getLevel(), $record->getData(), 4);
+		return $this;
+	}
+
+	/**
 	 * @param string $message
 	 * @param string $extension
 	 * @param integer $severity
@@ -60,16 +74,8 @@ class DevlogLogger implements LoggerInterface {
 	 */
 	protected function storeLog($message, $extension, $severity, $debugData, $traceStart = 2) {
 
-		if ($this->config->isExcludedKey($extension) || $severity < $this->config->getMinLogLevel()) {
+		if ($this->config->isExcludedKey($extension) || $severity > $this->config->getMinLogLevel()) {
 			return;
-		}
-
-		$pid = 0;
-
-		if (TYPO3_MODE === 'FE' && isset($GLOBALS['TSFE'])) {
-			$pid = $GLOBALS['TSFE']->id;
-		} elseif (isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['GLOBAL']['debugData']['pid'])) {
-			$pid = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['GLOBAL']['debugData']['pid'];
 		}
 
 		if (stripos($extension, '\\') !== FALSE) {
@@ -83,7 +89,6 @@ class DevlogLogger implements LoggerInterface {
 		}
 
 		$inserts = array(
-			'pid'      => $pid,
 			'crdate'   => time(),
 			'severity' => $severity,
 			'extkey'   => $extension,
@@ -91,6 +96,12 @@ class DevlogLogger implements LoggerInterface {
 			'crmsec'   => $this->config->getCurrentRun(),
 			'ip'       => GeneralUtility::getIndpEnv('REMOTE_ADDR')
 		);
+
+		if (TYPO3_MODE === 'FE' && isset($GLOBALS['TSFE'])) {
+			$inserts['pid'] = $GLOBALS['TSFE']->id;
+		} elseif (isset($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['GLOBAL']['debugData']['pid'])) {
+			$inserts['pid'] = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['GLOBAL']['debugData']['pid'];
+		}
 
 		if (!empty($debugData)) {
 			$debugData = json_encode($this->converter->convertData($debugData));
@@ -125,77 +136,5 @@ class DevlogLogger implements LoggerInterface {
 			}
 		}
 		$this->db->exec_INSERTquery('tx_devlog', $inserts);
-	}
-
-	/**
-	 * Used by the the TYPO3 devlog API
-	 *
-	 * @see GeneralUtility::devlog
-	 * @param array $params
-	 * @return void
-	 */
-	public function coreCall(array $params) {
-		$this->storeLog($params['msg'], $params['extKey'], $params['severity'], $params['dataVar'], 4);
-	}
-
-	/**
-	 * Log debug data
-	 * Severity info can be seen as "debug"
-	 *
-	 * @param string $message
-	 * @param string $extensionKey
-	 * @param array $debugData
-	 * @return void
-	 */
-	public function info($message, $extensionKey, array $debugData = NULL) {
-		$this->storeLog($message, $extensionKey, GeneralUtility::SYSLOG_SEVERITY_INFO, $debugData);
-	}
-
-	/**
-	 * Log a notice
-	 *
-	 * @param string $message
-	 * @param string $extensionKey
-	 * @param array $debugData
-	 * @return void
-	 */
-	public function notice($message, $extensionKey, array $debugData = NULL) {
-		$this->storeLog($message, $extensionKey, GeneralUtility::SYSLOG_SEVERITY_NOTICE, $debugData);
-	}
-
-	/**
-	 * Log a warning
-	 *
-	 * @param string $message
-	 * @param string $extensionKey
-	 * @param array $debugData
-	 * @return void
-	 */
-	public function warning($message, $extensionKey, array $debugData = NULL) {
-		$this->storeLog($message, $extensionKey, GeneralUtility::SYSLOG_SEVERITY_WARNING, $debugData);
-	}
-
-	/**
-	 * Log an error
-	 *
-	 * @param string $message
-	 * @param string $extensionKey
-	 * @param array $debugData
-	 * @return void
-	 */
-	public function error($message, $extensionKey, array $debugData = NULL) {
-		$this->storeLog($message, $extensionKey, GeneralUtility::SYSLOG_SEVERITY_ERROR, $debugData);
-	}
-
-	/**
-	 * Log a fatal error
-	 *
-	 * @param string $message
-	 * @param string $extensionKey
-	 * @param array $debugData
-	 * @return void
-	 */
-	public function fatal($message, $extensionKey, array $debugData = NULL) {
-		$this->storeLog($message, $extensionKey, GeneralUtility::SYSLOG_SEVERITY_FATAL, $debugData);
 	}
 }
