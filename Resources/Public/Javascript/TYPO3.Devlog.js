@@ -119,6 +119,17 @@ TYPO3.Devlog = {};
 
 		$.getJSON(url, function(data) {
 
+			$(clickable).siblings().hide();
+
+			if (data && data.error) {
+				TYPO3.Flashmessage.display(
+					TYPO3.Severity.error,
+					'Error',
+					data.error
+				);
+				return;
+			}
+
 			var container = $("<td colspan='10' />");
 			$(clickable).parents("tr").after( $('<tr />').append(container) );
 			container = $('<div class="debug-data-container" />').appendTo(container);

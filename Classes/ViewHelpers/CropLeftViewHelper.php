@@ -34,6 +34,10 @@ class CropLeftViewHelper extends AbstractViewHelper {
 			$content = (string) $this->renderChildren();
 		}
 
+		if (strlen($content) < $maxCharacter) {
+			return $content;
+		}
+
 		$path = preg_split('/[\/\\\\]/', $content);
 		$content = '';
 

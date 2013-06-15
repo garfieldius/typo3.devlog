@@ -10,8 +10,11 @@
 
 namespace TYPO3Community\Devlog\Controller;
 
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
+use TYPO3Community\Devlog\Domain\Model\LogRecord;
 
 /**
  * Backend Controller
@@ -24,19 +27,27 @@ use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 class ViewerController extends ActionController {
 
 	/**
-	 * @var \TYPO3Community\Devlog\Data\DataRepository
+	 *
+	 * @var \TYPO3\CMS\Core\Database\DatabaseConnection
 	 */
-	protected $data;
+	protected $db;
+
+	/**
+	 *
+	 * @var \TYPO3Community\Devlog\Domain\Repository\LogRunRepository
+	 */
+	protected $runRepository;
+
 	/**
 	 * @var \TYPO3Community\Devlog\Utility\Configuration
 	 */
 	protected $config;
 
 	/**
-	 * @param \TYPO3Community\Devlog\Data\DataRepository $data
+	 * @param \TYPO3Community\Devlog\Domain\Repository\LogRunRepository $runRepository
 	 */
-	public function injectData(\TYPO3Community\Devlog\Data\DataRepository $data) {
-		$this->data = $data;
+	public function injectRunRepository(\TYPO3Community\Devlog\Domain\Repository\LogRunRepository $runRepository) {
+		$this->runRepository = $runRepository;
 	}
 
 	/**
@@ -50,20 +61,33 @@ class ViewerController extends ActionController {
 		$view->assign('config', $this->config->getAll());
 	}
 
+	protected function initializeAction() {
+		parent::initializeAction();
+		$this->db = $GLOBALS['TYPO3_DB'];
+	}
+
 	/**
 	 * List all logged actions of a run
-	 * Handle the run ID as string, otherwise a 32-bit PHP will lower it to PHP_INT_MAX
+	 * We cannot use extbase to load this, because it cannot handle the refs to the
+	 * records without some proper TCA
 	 *
-	 * @param string $run
-	 * @param string $extension
+	 * @param integer $run
 	 */
-	public function listAction($run = NULL, $extension = NULL) {
-		$data = $this->data->getRunData($run, $extension);
-		$this->view->assignMultiple($data)
-					->assign('next', $this->data->findNextRunId($data['run']))
-					->assign('previous', $this->data->findPreviousId($data['run']))
-					->assign('allcount', $this->data->countAllRuns())
-					->assign('activeExtension', $extension);
+	public function listAction($run = NULL) {
+
+		if (!$run) {
+			$run = $this->runRepository->findLatest();
+		} else {
+			$run = $this->runRepository->findByUid($run);
+		}
+
+		$this->view->assign('run', $run);
+		$this->view->assign('allcount', $this->runRepository->countAll());
+
+		if ($run) {
+			$this->view->assign('next', $this->runRepository->findNext($run));
+			$this->view->assign('previous', $this->runRepository->findPrevious($run));
+		}
 	}
 
 	/**
@@ -72,22 +96,48 @@ class ViewerController extends ActionController {
 	 * @return string
 	 */
 	public function cleanAction() {
-		if ($this->data->cleanTable()) {
-			return 'yes';
-		} else {
-			return 'no';
+		if ($this->runRepository->countAll() > $this->config->getMaxSavedRuns()) {
+			$row = $this->db->exec_SELECTgetSingleRow(
+				'uid',
+				'tx_devlog_domain_model_logrun',
+				'',
+				'',
+				'uid DESC',
+				$this->config->getMaxSavedRuns()
+			);
+
+			if (!empty($row['uid'])) {
+				$this->db->exec_DELETEquery(
+					'tx_devlog_domain_model_logrun',
+					'uid > ' . $row['uid']
+				);
+
+				$this->db->exec_DELETEquery(
+					'tx_devlog_domain_model_logrecord',
+					'run NOT IN (SELECT uid FROM tx_devlog_domain_model_logrun)'
+				);
+				return 'yes';
+			}
 		}
+		return 'no';
 	}
 
 	/**
 	 * Load the debug data of an entry
 	 * Since we store JSON in the DB, no need to issue a view rendering
 	 *
-	 * @param integer $debugEntry
+	 * @param integer $recordId
 	 * @return string
 	 */
-	public function detailAction($debugEntry = NULL) {
+	public function detailAction($recordId) {
 		$this->response->setHeader('Content-Type', 'application/json;charset=UTF-8');
-		return $this->data->findDebugDataByEntry($debugEntry);
+		if ($recordId) {
+			$record = GeneralUtility::makeInstance('TYPO3Community\Devlog\Domain\Repository\LogRecordRepository')->findByUid($recordId);
+
+			if ($record instanceof LogRecord) {
+				return $record->getDebugData();
+			}
+		}
+		return '{"error":"No debug data found"}';
 	}
 }
