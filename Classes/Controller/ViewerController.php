@@ -109,7 +109,7 @@ class ViewerController extends ActionController {
 			if (!empty($row['uid'])) {
 				$this->db->exec_DELETEquery(
 					'tx_devlog_domain_model_logrun',
-					'uid > ' . $row['uid']
+					'uid < ' . $row['uid']
 				);
 
 				$this->db->exec_DELETEquery(
